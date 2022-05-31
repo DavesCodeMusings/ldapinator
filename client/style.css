@@ -1,0 +1,79 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+*[onclick] {
+  cursor: pointer;
+}
+
+body {
+  background-color: silver;
+  background-image: linear-gradient(whitesmoke, silver);
+  background-size: 100vh 100vw;
+  font-family: sans-serif;
+  font-size: 12pt;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0.2em;
+  padding: 0.2em;
+  width: 640px;
+}
+
+details img {
+  margin-right: 0.2em;
+  vertical-align: bottom;
+}
+
+details > summary {
+  cursor: pointer;
+  list-style-type: none;
+}
+
+details > p {
+  margin-left: 24px;  /* Width of prepended icons */
+}
+
+form {
+  text-align: right;
+}
+
+form .group, form .user {
+  display: none;  /* Made visible by showFields() */
+}
+
+form input[type="text"], form input[type="email"] {
+  background-color: #00000000;  /* Transparent */
+  border: none;
+  font-size: 12pt;
+  text-align: right;
+  width: 22em;
+}
+
+form ::placeholder {
+  color: gray;
+  font-style: italic;
+}
+
+form textarea {
+  background-color: #00000000;  /* Transparent */
+  border: none;
+  display: block;
+  font-size: 12pt;
+  resize: none;
+  text-align: right;
+  width: 22em;
+}
+
+h1 {
+  margin-bottom: 1em;
+  text-align: center;
+}
+
+main {
+  float: right;
+}
+
+nav {
+  float: left;
+}

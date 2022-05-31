@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <title>LDAPinator</title>
+  <link rel="icon" type="image/x-icon" href="icons/favicon.svg">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src='script.js'></script>
+  <script>
+    getBaseDN(() => {
+      document.getElementById('details-dn').value = baseDN;
+    })
+  </script>
+</head>
+
+<body>
+  <h1>LDAPinator</h1>
+
+  <nav>
+    <details>
+      <summary onclick="showEntries(baseDN, 'tree'); showFields('none')"><img alt="[directory root]" src="icons/home.svg">Home</summary>
+      <p id="tree"></p>
+    </details>
+  </nav>
+
+  <main>
+    <form>
+      <input id="details-dn" type="text" placeholder="distinguished name" readonly>
+      <input id="details-description" class="group" type="text" placeholder="description">
+      <input id="details-displayName" class="user" type="text" placeholder="display name">
+      <input id="details-givenName" class="user" type="text" placeholder="first name" pattern="[A-Za-z]+">
+      <input id="details-initials" class="user" type="text" placeholder="m.i." pattern="[A-Z.]+">
+      <input id="details-sn" class="user" type="text" placeholder="last name" pattern="[A-Za-z]+">
+      <input id="details-uid" class="user" type="text" placeholder="user id" pattern="[a-z]+">
+      <input id="details-mail" class="user" type="email" placeholder="name@anubis.home">
+      <input id="details-uidNumber" class="user" type="text" placeholder="user id #" pattern="[0-9]{4,5}">
+      <input id="details-gidNumber" class="user group" type="text" placeholder="group id #" pattern="[0-9]{4,5}">
+      <input id="details-homeDirectory" class="user" type="text" placeholder="home directory" pattern="[a-z/]+">
+      <input id="details-userPassword" class="user" type="text" placeholder="ldap password">
+      <input id="details-memberUid" class="group" type="text" placeholder="uids of group members" pattern="[a-z, ]+">
+    </form>
+  </main>
+</body>
+
+</html>
+

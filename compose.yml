@@ -1,0 +1,10 @@
+services:
+  ldapinator:
+    build: .
+    image: ldapinator
+    container_name: ldapinator
+    hostname: ldapinator
+    restart: unless-stopped
+    ports:
+      - "3269:3269"
+

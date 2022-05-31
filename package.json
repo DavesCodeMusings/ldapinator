@@ -1,0 +1,8 @@
+{
+  "name": "LDAPinator",
+  "type": "module",
+  "dependencies": {
+    "ldapjs": "^2.3.2",
+    "express": "^4.18.1"
+  }
+}
