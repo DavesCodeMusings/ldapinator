@@ -66,7 +66,7 @@ The ldapinator is still in development. So far it can read your LDAP objects, bu
 Nothing's encrypted. If you're concerned, use Nginx as a reverse proxy to handle TLS connections.
 
 ## Continued Development
-I plan to enhance the web interface with the ability to update attributes on the existing objects. I seriously doubt I will ever add a feature to add and remove users or groups. You can use other tools for that. I am a lone developer, not an enterprise team. Don't expect enterprisey features. Refer to Highlander quote above.
+I plan to enhance the web interface with the ability to update attributes on the existing objects. It's going to be a while before I add a feature to add and remove users or groups. You have to use other tools for that. I am a lone developer, not an enterprise team. Refer to Highlander quote above.
 
 It's Express.js under the covers though, so it should be fairly accessible if you want to hack on it and add features.
 
