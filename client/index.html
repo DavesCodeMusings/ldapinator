@@ -8,8 +8,8 @@
   <link rel="stylesheet" type="text/css" href="style.css">
   <script src='script.js'></script>
   <script>
-    getBaseDN(() => {
-      document.getElementById('details-dn').value = baseDN;
+    getDirectoryStructure(() => {
+      document.getElementById('details-dn').value = directoryStructure.baseDN;
     })
   </script>
 </head>
@@ -19,29 +19,41 @@
 
   <nav>
     <details>
-      <summary onclick="showEntries(baseDN, 'tree'); showFields('none')"><img alt="[directory root]" src="icons/home.svg">Home</summary>
-      <p id="tree"></p>
+      <summary onclick="showSubordinates(directoryStructure.baseDN, 'directory-tree'); showFields(directoryStructure.baseDN, 'organization')">
+        <img alt="[directory root]" src="icons/home.svg">Home
+      </summary>
+      <p id="directory-tree"></p>
     </details>
   </nav>
 
-  <main>
+  <main id="main">
+    <p>
+      <img id="details-icon" alt="[organization]" src="icons/site-map-outline.svg">
+    </p>
+
     <form>
-      <input id="details-dn" type="text" placeholder="distinguished name" readonly>
-      <input id="details-description" class="group" type="text" placeholder="description">
-      <input id="details-displayName" class="user" type="text" placeholder="display name">
-      <input id="details-givenName" class="user" type="text" placeholder="first name" pattern="[A-Za-z]+">
-      <input id="details-initials" class="user" type="text" placeholder="m.i." pattern="[A-Z.]+">
-      <input id="details-sn" class="user" type="text" placeholder="last name" pattern="[A-Za-z]+">
-      <input id="details-uid" class="user" type="text" placeholder="user id" pattern="[a-z]+">
-      <input id="details-mail" class="user" type="email" placeholder="name@anubis.home">
-      <input id="details-uidNumber" class="user" type="text" placeholder="user id #" pattern="[0-9]{4,5}">
-      <input id="details-gidNumber" class="user group" type="text" placeholder="group id #" pattern="[0-9]{4,5}">
-      <input id="details-homeDirectory" class="user" type="text" placeholder="home directory" pattern="[a-z/]+">
-      <input id="details-userPassword" class="user" type="text" placeholder="ldap password">
-      <input id="details-memberUid" class="group" type="text" placeholder="uids of group members" pattern="[a-z, ]+">
+      <input id="details-dn"type="text" placeholder="dn" readonly>
+      <input id="details-description" class="posixGroup" type="text" placeholder="description">
+      <input id="details-displayName" class="posixAccount" type="text" placeholder="display name">
+      <input id="details-givenName" class="posixAccount" type="text" placeholder="first name" pattern="[A-Za-z]+">
+      <input id="details-initials" class="posixAccount" type="text" placeholder="m.i." pattern="[A-Z.]+">
+      <input id="details-sn" class="posixAccount" type="text" placeholder="last name" pattern="[A-Za-z]+">
+      <input id="details-uid" class="posixAccount" type="text" placeholder="user id" pattern="[a-z]+">
+      <input id="details-mail" class="posixAccount" type="email" placeholder="name@anubis.home">
+      <input id="details-uidNumber" class="posixAccount" type="text" placeholder="user id #" pattern="[0-9]{4,5}">
+      <input id="details-gidNumber" class="posixAccount posixGroup" type="text" placeholder="group id #" pattern="[0-9]{4,5}">
+      <input id="details-homeDirectory" class="posixAccount" type="text" placeholder="home directory" pattern="[a-z/]+">
+      <input id="details-memberUid" class="posixGroup" type="text" placeholder="uids of group members" pattern="[a-z, ]+">
+
+      <!-- Password dialog is hidden except for posixAccounts and then only revealed as a alide out by using the key icon -->
+      <input id="password" class="password-dialog" type="password" placeholder="password">
+      <input id="password-confirm" class="password-dialog" type="password" placeholder="confirm">
+      <a class="password-dialog" href="javascript:passwordDialog('change')"><img alt="[OK]" src="icons/check.svg"></a>
+      <a class="password-dialog" href="javascript:passwordDialog('hide')"><img alt="[Cancel]" src="icons/close.svg"></a>
+      <a id="password-dialog-btn" class="posixAccount" href="javascript:passwordDialog('show')"><img alt="[change password]" src="icons/key-variant.svg"></a>
     </form>
+
   </main>
 </body>
 
 </html>
-

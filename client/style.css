@@ -38,7 +38,21 @@ form {
   text-align: right;
 }
 
-form .group, form .user {
+form button {
+  margin-left: auto;
+  margin-right: 0;
+  width: 3em;
+}
+
+form img {
+  vertical-align: bottom;
+}
+
+form .password-dialog {
+  display: none;
+}
+
+form .posixGroup, form .posixAccount {
   display: none;  /* Made visible by showFields() */
 }
 
@@ -50,19 +64,15 @@ form input[type="text"], form input[type="email"] {
   width: 22em;
 }
 
+form input[type="password"] {
+  display: none;
+  font-size: 12pt;
+  width: 8em;
+}
+
 form ::placeholder {
   color: gray;
   font-style: italic;
-}
-
-form textarea {
-  background-color: #00000000;  /* Transparent */
-  border: none;
-  display: block;
-  font-size: 12pt;
-  resize: none;
-  text-align: right;
-  width: 22em;
 }
 
 h1 {
@@ -72,6 +82,7 @@ h1 {
 
 main {
   float: right;
+  text-align: right;
 }
 
 nav {

@@ -60,8 +60,7 @@ const allowedAttributes = [
   'objectClass',
   'sn',
   'uid',
-  'uidNumber',
-  'userPassword'
+  'uidNumber'
 ]
 
 
@@ -206,8 +205,7 @@ async function getObjectDetail(baseDN, filter) {
           "memberUid": [],
           "sn": '',
           "uid": '',
-          "uidNumber": '',
-          "userPassword": ''
+          "uidNumber": ''
         }
 
         entry.attributes.forEach(attribute => {
@@ -270,10 +268,6 @@ async function getObjectDetail(baseDN, filter) {
             returnAttributes.uidNumber = attribute._vals[0].toString()
             console.debug('    value:', returnAttributes.uidNumber)
           }
-          if (attribute.type == 'userPassword') {
-            returnAttributes.userPassword = attribute._vals[0].toString()
-            console.debug('    value:', returnAttributes.userPassword)
-          }
         })
 
         results.push(returnAttributes)
@@ -291,6 +285,7 @@ async function getObjectDetail(baseDN, filter) {
     })
   })
 }
+
 
 /**
  * Update object with a new attribute value. Will create the attribute if not present. 
@@ -348,8 +343,8 @@ app.use(express.json())
 app.use(authCheck)
 app.use('/', express.static(__dirname + '/client'))
 
-app.get('/config/baseDN', function (req, res) {
-  res.send(config.connect.baseDN)
+app.get('/config/structure', function (req, res) {
+  res.send(config.structure)
 })
 
 app.get('/:dn', async function (req, res) {
