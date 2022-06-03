@@ -10,9 +10,7 @@ The easiest way is using Docker Compose. But first, you need to create a config.
 ### config.ini
 ```
 [connect]
-primary = ldap://192.168.0.10:389     ; first ldap server to contact
-;secondary = ldap://192.168.0.20:389  ; uncomment to add a fallback
-baseDN = "dc=example,dc=com"
+host = ldap://192.168.0.100:389
 
 [bind]
 readOnlyDN = "uid=search,dc=example,dc=com"
@@ -20,9 +18,16 @@ readOnlyPassword = redacted
 readWriteDN = "cn=Manager,dc=example,dc=com"
 readWritePassword = redacted
 
+[structure]
+baseDN = "dc=example,dc=com"
+
 [api]
-readWriteUser = update
-readWritePassword = redacted
+;port = 3269  ; uncomment to override default
+allowAnonymousRead = yes       ; yes or no
+allowAnonymousModify = yes     ; yes or no
+allowUserPasswordChange = yes  ; yes or no
+authorizedUser = update
+authorizedPassword = redacted
 ```
 
 Obviously, adjust config.ini to match your installation.
@@ -66,7 +71,7 @@ The ldapinator is still in development. So far it can read your LDAP objects, bu
 Nothing's encrypted. If you're concerned, use Nginx as a reverse proxy to handle TLS connections.
 
 ## Continued Development
-I plan to enhance the web interface with the ability to update attributes on the existing objects. It's going to be a while before I add a feature to add and remove users or groups. You have to use other tools for that. I am a lone developer, not an enterprise team. Refer to Highlander quote above.
+It's going to be a while before I add a feature to add and remove users or groups. You'll have to use other tools for that. I am a lone developer, not an enterprise team. Refer to Highlander quote above.
 
 It's Express.js under the covers though, so it should be fairly accessible if you want to hack on it and add features.
 
