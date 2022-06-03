@@ -4,9 +4,11 @@ import { URL } from 'url'
 import { readFileSync } from 'fs'
 import ini from 'ini'
 import ldapjs from 'ldapjs'
+import { exec } from 'child_process'
 import express from 'express'
 
 const __dirname = new URL('.', import.meta.url).pathname
+
 
 /* Allow toggling of debug output by overriding console.debug() */
 let debugLogging = process.argv.includes('-d')
@@ -33,17 +35,14 @@ catch (ex) {
   console.debug(ex)
 }
 
-if (config.connect.primary) {
-  ldapServerURLs.push(config.connect.primary)
+if (config.connect.hostURL) {
+  ldapServerURLs.push(config.connect.hostURL)
 }
 else {
   ldapServerURLs.push('ldap://127.0.0.1:389')
 }
-if (config.connect.secondary) {
-  ldapServerURLs.push(config.connect.secondary)
-}
 
-apiAuthorization = 'Basic ' + Buffer.from(`${config.api.readWriteUser}:${config.api.readWritePassword}`).toString('base64')  
+apiAuthorization = 'Basic ' + Buffer.from(`${config.api.authorizedUser}:${config.api.authorizedPassword}`).toString('base64')  
 
 
 /* List of attributes that can be queried and updated via the API */
@@ -71,10 +70,25 @@ const allowedAttributes = [
  * @param {function} next  Next middleware function to pass control to
  */
 function authCheck(req, res, next) {
-  if (req.method !== 'GET' && req.headers.authorization !== apiAuthorization) {
+  let requireAuthorization = true
+
+  switch (req.method) {
+    case 'GET':
+      if (config.api.allowAnonymousRead == 'yes') {
+        requireAuthorization = false
+      }
+    break
+    case 'PUT':
+      if (config.api.allowAnonymousModify == 'yes') {
+        requireAuthorization = false
+      }
+    break
+  }
+
+  if (requireAuthorization && req.headers.authorization !== apiAuthorization) {
     res.status(401)
-    res.send('Please log in to make changes.')
-    console.error('Bad API credentials')
+    res.send('Credentials must be provided with this request')
+    console.error('Missing or incorrect API credentials')
     console.debug('Expected', apiAuthorization)
     console.debug('Got:', req.headers.authorization)
   }
@@ -82,6 +96,7 @@ function authCheck(req, res, next) {
     next()
   }
 }
+
 
 /**
  * Connect to LDAP server and log in.
@@ -130,6 +145,8 @@ async function getObjects(baseDN) {
     scope: 'one'
   }
 
+  // Only two attributes are of interest: dn (distinguished name) and objectClass.
+  // objectClass is used to determine the node type (container or leaf.)
   let results = []
   return new Promise((resolve, reject) => {
     connection.search(baseDN, opts, (err, res) => {
@@ -146,11 +163,11 @@ async function getObjects(baseDN) {
             })
           }
         })
-        let returnAttributes = {
+        let collectedAttributes = {
           "dn": entry.objectName,
           "classes": objectClasses
         }
-        results.push(returnAttributes)
+        results.push(collectedAttributes)
       })
 
       res.on('error', (err) => {
@@ -191,7 +208,9 @@ async function getObjectDetail(baseDN, filter) {
       res.on('searchEntry', (entry) => {
         console.debug('dn:', entry.objectName)
 
-        let returnAttributes = {
+        // Any LDAP attribute that is not a property of the collectedAttributes below will be ignored.
+        // Also determines if attributes are treated as single-value (string) or multi-value (array).
+        let collectedAttributes = {
           "dn": entry.objectName,
           "objectClass": [],
           "cn": [],
@@ -209,68 +228,23 @@ async function getObjectDetail(baseDN, filter) {
         }
 
         entry.attributes.forEach(attribute => {
-          console.debug('  attribute type:', attribute.type)
-          if (attribute.type == 'cn') {
+          if (typeof collectedAttributes[attribute.type] === 'string') {
+            console.debug('  single-value attribute:', attribute.type)
+            collectedAttributes[attribute.type] = attribute._vals[0].toString()
+            console.debug('    value:', collectedAttributes[attribute.type])
+          }
+          else if (typeof collectedAttributes[attribute.type] === 'object' && collectedAttributes[attribute.type].constructor == Array) {
+            console.debug('  multi-value attribute:', attribute.type)
             attribute._vals.forEach(value => {
               console.debug('    value:', value.toString())
-              returnAttributes.cn.push(value.toString())
+              collectedAttributes[attribute.type].push(value.toString())
             })
           }
-          if (attribute.type == 'description') {
-            returnAttributes.description = attribute._vals[0].toString()
-            console.debug('    value:', returnAttributes.description)
-          }
-          if (attribute.type == 'displayName') {
-            returnAttributes.displayName = attribute._vals[0].toString()
-            console.debug('    value:', returnAttributes.displayName)
-          }
-          if (attribute.type == 'gidNumber') {
-            returnAttributes.gidNumber = attribute._vals[0].toString()
-            console.debug('    value:', returnAttributes.gidNumber)
-          }
-          if (attribute.type == 'givenName') {
-            returnAttributes.givenName = attribute._vals[0].toString()
-            console.debug('    value:', returnAttributes.givenName)
-          }
-          if (attribute.type == 'homeDirectory') {
-            returnAttributes.homeDirectory = attribute._vals[0].toString()
-            console.debug('    value:', returnAttributes.homeDirectory)
-          }
-          if (attribute.type == 'initials') {
-            returnAttributes.initials = attribute._vals[0].toString()
-            console.debug('    value:', returnAttributes.initials)
-          }
-          if (attribute.type == 'mail') {
-            returnAttributes.mail = attribute._vals[0].toString()
-            console.debug('    value:', returnAttributes.mail)
-          }
-          if (attribute.type == 'memberUid') {
-            attribute._vals.forEach(value => {
-              console.debug('    value:', value.toString())
-              returnAttributes.memberUid.push(value.toString())
-            })
-          }
-          if (attribute.type == 'objectClass') {
-            attribute._vals.forEach(value => {
-              console.debug('    value:', value.toString())
-              returnAttributes.objectClass.push(value.toString())
-            })
-          }
-          if (attribute.type == 'sn') {
-            returnAttributes.sn = attribute._vals[0].toString()
-            console.debug('    value:', returnAttributes.sn)
-          }
-          if (attribute.type == 'uid') {
-            returnAttributes.uid = attribute._vals[0].toString()
-            console.debug('    value:', returnAttributes.uid)
-          }
-          if (attribute.type == 'uidNumber') {
-            returnAttributes.uidNumber = attribute._vals[0].toString()
-            console.debug('    value:', returnAttributes.uidNumber)
+          else {
+            console.debug('  uncaptured attribute:', attribute.type)
           }
         })
-
-        results.push(returnAttributes)
+        results.push(collectedAttributes)
       })
 
       res.on('error', (err) => {
@@ -326,7 +300,34 @@ async function modifyAttribute(dn, attribute, value) {
 }
 
 
+/**
+ * Change the password for the given dn with the ldappasswd shell command
+ * @param {string} dn  Distinguished name for the user
+ * @param {string} password  New password
+ * @returns {promise}  resolves to dn of the user, rejects with error message
+ */
+async function modifyPassword(dn, password) {
+  let command = `ldappasswd -H "${ldapServerURLs}" -x -D "${config.bind.readWriteDN}" -w "${config.bind.readWritePassword}" -s "${password}" "${dn}"`
+
+  return new Promise((resolve, reject) => {
+    console.debug('Changing password for:', dn)
+    console.debug('Running:', command)
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(stdout + stderr)
+        reject(stdout + stderr)
+      }
+      else {
+        resolve(dn)
+      }
+    })
+  })
+}
+
+
 /*
+ *  API
+ *
  *  Static files (HTML, images, client-side JavaScript, and CSS) are served from /client
  *  API calls are made to / with the distinguished name appended. e.g. /uid=bob,ou=People,dc=home
  * 
@@ -334,8 +335,8 @@ async function modifyAttribute(dn, attribute, value) {
  *    replies with all allowed attributes for the requested object. (See allowedAttributes above.)
  *  GET with a query parameter of ?view=subordinate
  *    replies with a list of dn and classes for subordiante objects. (Used to list contents of OUs.)
- *  POST
- *    creates or updates the single, JSON-formatted attribute in the request body.
+ *  PUT
+ *    updates the single, JSON-formatted attribute in the request body.
  */
 const app = express()
 
@@ -361,22 +362,36 @@ app.get('/:dn', async function (req, res) {
   res.send(results)
 })
 
-app.post('/:dn', async function (req, res) {
+app.put('/:dn', async function (req, res) {
   let requestedAttribute = Object.keys(req.body)[0]
+  console.debug('attribute:', Object.keys(req.body))
 
-  console.debug(req.body)
-  console.debug('Body:', Object.keys(req.body))
-  console.debug('Checking access for:', requestedAttribute)
-
-  if (!allowedAttributes.includes(requestedAttribute)) {
-    res.status(400)
-    res.send('attribute not allowed')
+  if (requestedAttribute == 'userPassword') {
+    if (config.api.allowUserPasswordChange == 'yes') {
+      let result = await modifyPassword(req.params.dn, req.body.userPassword).catch((err) => {
+        res.status(400)
+        res.send(err)
+      })
+      res.send(result)
+    }
+    else {
+      console.debug("Configuration setting [api] allowUserPasswordChange forbids password changes")
+      res.status(403)
+      res.send('Password change not allowed')
+    }
   }
   else {
-    let value = req.body[requestedAttribute]
-    console.debug(`Setting new description attribute on ${req.params.dn}:`, value)
-    res.send(await modifyAttribute(req.params.dn, requestedAttribute, value))
+    console.debug('Checking access for:', requestedAttribute)
+    if (!allowedAttributes.includes(requestedAttribute)) {
+      res.status(400)
+      res.send('attribute not allowed')
+    }
+    else {
+      let value = req.body[requestedAttribute]
+      console.debug(`Setting ${requestedAttribute} on ${req.params.dn} to:`, value)
+      res.send(await modifyAttribute(req.params.dn, requestedAttribute, value))
+    }
   }
 })
 
-app.listen(3269)
+app.listen(config.api.port || 3269)

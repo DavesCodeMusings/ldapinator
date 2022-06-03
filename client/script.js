@@ -212,11 +212,9 @@ function showFields(dn, className) {
     }
 }
 
-function passwordDialog(state) {
+function togglePasswordDialog(state) {
     let passwordDialogFields = document.getElementsByClassName('password-dialog')
     let passwordChangeButton = document.getElementById('password-dialog-btn')
-    let passwordField = document.getElementById('password')
-    let passwordConfirmField = document.getElementById('password-confirm')
 
     switch (state) {
         case 'show':
@@ -229,24 +227,75 @@ function passwordDialog(state) {
 
         case 'hide':
             console.debug("Closing password dialog")
-            passwordField.value=''
-            passwordConfirmField.value=''
+            document.getElementById('password').value=''
+            document.getElementById('password-confirm').value=''
             passwordChangeButton.style.display = 'block'
             for (i=0; i<passwordDialogFields.length; i++) {
                 passwordDialogFields[i].style.display = 'none'
             }
         break
 
-        case 'change':
-            if (passwordField.value != passwordConfirmField.value) {
-                alert('Passwords do not match')
-            }
-            else if (passwordField.value.length < 8) {
-                alert('Password is too short')
-            }
-            else {
-                alert('Password change is not implemented in the API yet.')
-            }
-        break
+    }
+}
+
+async function modifyAttribute(attribute) {
+    let dn = document.getElementById('details-dn').value
+    let value = document.getElementById('details-' + attribute).value
+
+    console.debug(`Modifying ${attribute} to "${value}" for ${dn}`)
+    headers = new Headers()
+    headers.append('Content-Type', 'application/json')
+    // headers.append('Authorization', 'Basic ' + btoa('update:redacted'))
+    const options = {
+        method: 'PUT',
+        headers: headers,
+        body: `{ "${attribute}": "${value}" }`
+    }
+
+    let response = await fetch(`${api}/${dn}`, options)
+    if (response.status != 200) {
+        console.error('Modify failed')
+    }
+    else {
+        console.debug('Modify complete')
+    }
+
+
+    let body = {}
+    body[attribute] = value
+    console.debug('request body:', body)
+}
+
+async function changePassword() {
+    let userDN = document.getElementById('details-dn').value
+    let password = document.getElementById('password').value
+    let passwordConfirm = document.getElementById('password-confirm').value
+
+    console.debug("Password change requested for:", userDN)
+
+    if (password != passwordConfirm) {
+        alert('Passwords do not match')
+    }
+    else if (password.length == 0) {
+        alert('Password cannot be empty')
+    }
+    else {
+        headers = new Headers()
+        headers.append('Content-Type', 'application/json')
+        // headers.append('Authorization', 'Basic ' + btoa('update:redacted'))
+        const options = {
+            method: 'PUT',
+            headers: headers,
+            body: `{ "userPassword": "${password}" }`
+        }
+
+        let response = await fetch(`${api}/${userDN}`, options)
+        if (response.status != 200) {
+            alert('Unable to change password.')
+        }
+        else {
+            alert('Password changed.')
+            togglePasswordDialog('hide')
+        }
     }
 }

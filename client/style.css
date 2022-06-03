@@ -70,6 +70,16 @@ form input[type="password"] {
   width: 8em;
 }
 
+form input[readonly] {
+  font-weight: bold;
+}
+
+form label {
+  color: dimgray;
+  font-family: serif;
+  font-size: 8pt;
+  font-variant: small-caps;
+}
 form ::placeholder {
   color: gray;
   font-style: italic;

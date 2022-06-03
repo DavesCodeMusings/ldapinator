@@ -33,24 +33,38 @@
 
     <form>
       <input id="details-dn"type="text" placeholder="dn" readonly>
-      <input id="details-description" class="posixGroup" type="text" placeholder="description">
-      <input id="details-displayName" class="posixAccount" type="text" placeholder="display name">
-      <input id="details-givenName" class="posixAccount" type="text" placeholder="first name" pattern="[A-Za-z]+">
-      <input id="details-initials" class="posixAccount" type="text" placeholder="m.i." pattern="[A-Z.]+">
-      <input id="details-sn" class="posixAccount" type="text" placeholder="last name" pattern="[A-Za-z]+">
-      <input id="details-uid" class="posixAccount" type="text" placeholder="user id" pattern="[a-z]+">
-      <input id="details-mail" class="posixAccount" type="email" placeholder="name@anubis.home">
-      <input id="details-uidNumber" class="posixAccount" type="text" placeholder="user id #" pattern="[0-9]{4,5}">
-      <input id="details-gidNumber" class="posixAccount posixGroup" type="text" placeholder="group id #" pattern="[0-9]{4,5}">
-      <input id="details-homeDirectory" class="posixAccount" type="text" placeholder="home directory" pattern="[a-z/]+">
+      <input id="details-uid" class="posixAccount" type="text" placeholder="user id" readonly>
+      <label class="posixAccount">User ID Number</label>
+      <input id="details-uidNumber" class="posixAccount" onchange="modifyAttribute('uidNumber')" type="text" placeholder="user id #" pattern="[0-9]{4,5}">
+      <label class="posixAccount posixGroup">Group ID Number</label>
+      <input id="details-gidNumber" class="posixAccount posixGroup" onchange="modifyAttribute('gidNumber')" type="text" placeholder="group id #" pattern="[0-9]{4,5}">
+      <label class="posixAccount">First Name</label>
+      <input id="details-givenName" class="posixAccount" onchange="modifyAttribute('givenName')" type="text" placeholder="first name" pattern="[A-Za-z]+">
+      <label class="posixAccount">Initials</label>
+      <input id="details-initials" class="posixAccount" onchange="modifyAttribute('initials')" type="text" placeholder="m.i." pattern="[A-Z.]+">
+      <label class="posixAccount">Last Name</label>
+      <input id="details-sn" class="posixAccount" onchange="modifyAttribute('sn')" type="text" placeholder="last name" pattern="[A-Za-z]+">
+      <label class="posixGroup">Description</label>
+      <input id="details-description" class="posixGroup" onchange="modifyAttribute('description')" type="text" placeholder="description">
+      <label class="posixAccount">Preferred Name</label>
+      <input id="details-displayName" class="posixAccount" onchange="modifyAttribute('displayName')" type="text" placeholder="display name">
+      <label class="posixAccount">email</label>
+      <input id="details-mail" class="posixAccount" onchange="modifyAttribute('mail')" type="email" placeholder="name@anubis.home">
+      <label class="posixAccount">Home Directory</label>
+      <input id="details-homeDirectory" class="posixAccount"onchange="modifyAttribute('homeDirectory')" type="text" placeholder="home directory" pattern="[a-z/]+">
+      <label class="posixGroup">Members</label>
       <input id="details-memberUid" class="posixGroup" type="text" placeholder="uids of group members" pattern="[a-z, ]+">
+
+      <br>
 
       <!-- Password dialog is hidden except for posixAccounts and then only revealed as a alide out by using the key icon -->
       <input id="password" class="password-dialog" type="password" placeholder="password">
       <input id="password-confirm" class="password-dialog" type="password" placeholder="confirm">
-      <a class="password-dialog" href="javascript:passwordDialog('change')"><img alt="[OK]" src="icons/check.svg"></a>
-      <a class="password-dialog" href="javascript:passwordDialog('hide')"><img alt="[Cancel]" src="icons/close.svg"></a>
-      <a id="password-dialog-btn" class="posixAccount" href="javascript:passwordDialog('show')"><img alt="[change password]" src="icons/key-variant.svg"></a>
+      <a class="password-dialog" href="javascript:changePassword()"><img alt="[OK]" src="icons/check.svg"></a>
+      <a class="password-dialog" href="javascript:togglePasswordDialog('hide')"><img alt="[Cancel]" src="icons/close.svg"></a>
+      <a id="password-dialog-btn" class="posixAccount" href="javascript:togglePasswordDialog('show')" title="Change Password">
+        <img alt="[change password]" src="icons/key-variant.svg">
+      </a>
     </form>
 
   </main>
