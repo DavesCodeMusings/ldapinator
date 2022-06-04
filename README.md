@@ -93,7 +93,9 @@ Ldapinator is a work in progress. Currently, it has these features:
 
 It's going to be a while before I add a feature to add and remove users or groups. You'll have to use other tools for that. I am a lone developer, not an enterprise team. Refer to Highlander quote above.
 
-It's Express.js under the covers though, so it should be fairly accessible if you want to hack on it and add features.
+I have also not tackled the design for mobile yet, so it probably looks pretty bad.
+
+It's Express.js on the backend and HTML/JavaScript/CSS on the front-end, so it should be fairly accessible if you want to hack on it and add features.
 
 ## Docker Hub
 https://hub.docker.com/r/davescodemusings/ldapinator
