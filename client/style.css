@@ -17,7 +17,7 @@ body {
   margin-right: auto;
   margin-top: 0.2em;
   padding: 0.2em;
-  width: 640px;
+  width: 1024px;
 }
 
 details img {
@@ -31,68 +31,55 @@ details > summary {
 }
 
 details > p {
-  margin-left: 24px;  /* Width of prepended icons */
+  margin-left: 24px;  /* Width of prepended icons in navigation tree */
 }
 
 form {
-  text-align: right;
+  display: grid;
+  grid-template-columns: repeat(8, 76px);
+  column-gap: 4px;
+  width: 640px;
 }
 
-form button {
-  margin-left: auto;
-  margin-right: 0;
-  width: 3em;
+input {
+  border: 1px solid lightgray;
+  font-size: 12pt;
+  height: 24px;  /* Matches default height of Material Design icons */
 }
 
-form img {
-  vertical-align: bottom;
+input[readonly] {
+  background-color: #00000000;
+  border: none;
 }
 
-form .password-dialog {
-  display: none;
+label {
+  font-size: 9pt;
+  font-variant: small-caps;
+  margin-top: 0.5em;
+}
+
+::placeholder {
+  color: #00000066;
+  font-style: italic;
 }
 
 form .posixGroup, form .posixAccount {
   display: none;  /* Made visible by showFields() */
 }
 
-form input[type="text"], form input[type="email"] {
-  background-color: #00000000;  /* Transparent */
-  border: none;
-  font-size: 12pt;
-  text-align: right;
-  width: 22em;
-}
-
-form input[type="password"] {
-  display: none;
-  font-size: 12pt;
-  width: 8em;
-}
-
-form input[readonly] {
-  font-weight: bold;
-}
-
-form label {
-  color: dimgray;
-  font-family: serif;
-  font-size: 8pt;
-  font-variant: small-caps;
-}
-form ::placeholder {
-  color: gray;
-  font-style: italic;
+header {
+  background-color: #00000033;
+  margin-bottom: 1em;
 }
 
 h1 {
-  margin-bottom: 1em;
-  text-align: center;
+  font-size: 16pt;
+  font-weight: bold;
+  padding: 0.2em;
 }
 
 main {
   float: right;
-  text-align: right;
 }
 
 nav {

@@ -1,11 +1,15 @@
 #!/usr/bin/env node
 
+import { join } from 'path'
 import { URL } from 'url'
 import { readFileSync } from 'fs'
 import ini from 'ini'
 import ldapjs from 'ldapjs'
 import { exec } from 'child_process'
 import express from 'express'
+import { createServer } from 'http'
+import { createServer as createServerTLS } from 'https'
+
 
 const __dirname = new URL('.', import.meta.url).pathname
 
@@ -21,13 +25,13 @@ console.debug = function(msg) {
 
 
 /* Read config file parameters and set defaults where possible */
-const configFile = 'config.ini'
+const configFile = join(__dirname, 'config', 'config.ini')
 var config = {}
 var ldapServerURLs = [];
 var apiAuthorization = '';
 
 try {
-  config = ini.parse(readFileSync(new URL(configFile, import.meta.url).pathname, 'utf-8'))
+  config = ini.parse(readFileSync(configFile, 'utf-8'))
   console.debug(`Settings from ${configFile}:`, config)
 }
 catch (ex) {
@@ -394,4 +398,14 @@ app.put('/:dn', async function (req, res) {
   }
 })
 
-app.listen(config.api.port || 3269)
+
+createServer(app).listen(config.api.port || 3268)
+
+try {
+  let tlsCert = readFileSync(join(__dirname, 'config', 'server.crt'))
+  let tlsKey = readFileSync(join(__dirname + 'config', 'server.key'))
+  createServerTLS({ cert: tlsCert, key: tlsKey }, app).listen(config.api.tlsPort || 3269)
+}
+catch (ex) {
+  console.warn('TLS disabled.', ex)
+}

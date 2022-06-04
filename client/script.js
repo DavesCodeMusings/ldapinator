@@ -129,112 +129,42 @@ async function showAttributes(dn) {
 
 function showFields(dn, className) {
     console.debug('showFields(%s, %s)', dn, className)
-    let userFieldsDisplay = ''
-    let groupFieldsDisplay = ''
+
+    formElements = document.getElementById('attributes').children
+    for (let i = 0; i < formElements.length; i++) {
+      if (formElements[i].classList.contains(className) || formElements[i].classList.contains('all')) {
+        formElements[i].style.display = 'inline';
+      }
+      else {
+        formElements[i].style.display = 'none';
+      }
+    }
 
     switch (className) {
         case 'posixGroup':
             document.getElementById('details-icon').src = 'icons/account-multiple.svg'
-            userFieldsDisplay = 'none'
-            groupFieldsDisplay = 'block'
         break
 
         case 'posixAccount':
             document.getElementById('details-icon').src = 'icons/account.svg'
-            userFieldsDisplay = 'block'
-            groupFieldsDisplay = 'none'
         break
 
         case 'organizationalRole':
             document.getElementById('details-icon').src = 'icons/account-outline.svg'
-            userFieldsDisplay = 'none'
-            groupFieldsDisplay = 'none'
         break
     
         case 'dcObject':
         case 'organization':
             document.getElementById('details-icon').src = 'icons/site-map-outline.svg'
-            userFieldsDisplay = 'none'
-            groupFieldsDisplay = 'none'
         break
 
         case 'organizationalUnit':
             document.getElementById('details-icon').src = 'icons/folder.svg'
-            userFieldsDisplay = 'none'
-            groupFieldsDisplay = 'none'
         break
 
         default:
             document.getElementById('details-icon').src = 'icons/food-drumstick.svg'
-            userFieldsDisplay = 'none'
-            groupFieldsDisplay = 'none'
         break
-    }
-
-    let userFields = document.getElementsByClassName('posixAccount')
-    let groupFields = document.getElementsByClassName('posixGroup')
-    for (i=0; i<userFields.length; i++) {
-        userFields[i].style.display = userFieldsDisplay
-    }
-    for (i=0; i<groupFields.length; i++) {
-        groupFields[i].style.display = groupFieldsDisplay
-    }
-
-    /* Show new user or new group button when the focus is on an OU of users or groups */
-    let newPosixAccountFields = document.getElementsByClassName('new-posixAccount')
-    let newPosixGroupFields = document.getElementsByClassName('new-posixGroup')
-
-    switch (dn) {
-        case directoryStructure.groupDN:
-            for (i=0; i<newPosixAccountFields.length; i++) {
-                newPosixAccountFields[i].style.display = 'none'
-            }
-            for (i=0; i<newPosixGroupFields.length; i++) {
-                newPosixGroupFields[i].style.display = 'block'
-            }        
-            break
-        case directoryStructure.userDN:
-            for (i=0; i<newPosixGroupFields.length; i++) {
-                newPosixGroupFields[i].style.display = 'none'
-            }
-            for (i=0; i<newPosixAccountFields.length; i++) {
-                newPosixAccountFields[i].style.display = 'block'
-            }
-            break
-        default:
-            for (i=0; i<newPosixAccountFields.length; i++) {
-                newPosixAccountFields[i].style.display = 'none'
-            }
-            for (i=0; i<newPosixGroupFields.length; i++) {
-                newPosixGroupFields[i].style.display = 'none'
-            }
-            break
-    }
-}
-
-function togglePasswordDialog(state) {
-    let passwordDialogFields = document.getElementsByClassName('password-dialog')
-    let passwordChangeButton = document.getElementById('password-dialog-btn')
-
-    switch (state) {
-        case 'show':
-            console.debug("Opening password dialog")
-            passwordChangeButton.style.display = 'none'
-            for (i=0; i<passwordDialogFields.length; i++) {
-                passwordDialogFields[i].style.display = 'inline'
-            }
-        break
-
-        case 'hide':
-            console.debug("Closing password dialog")
-            document.getElementById('password').value=''
-            document.getElementById('password-confirm').value=''
-            passwordChangeButton.style.display = 'block'
-            for (i=0; i<passwordDialogFields.length; i++) {
-                passwordDialogFields[i].style.display = 'none'
-            }
-        break
-
     }
 }
 
@@ -266,6 +196,11 @@ async function modifyAttribute(attribute) {
     console.debug('request body:', body)
 }
 
+function clearPasswordFields() {
+    document.getElementById('password').value = ''
+    document.getElementById('password-confirm').value = ''
+}
+
 async function changePassword() {
     let userDN = document.getElementById('details-dn').value
     let password = document.getElementById('password').value
@@ -295,7 +230,6 @@ async function changePassword() {
         }
         else {
             alert('Password changed.')
-            togglePasswordDialog('hide')
         }
     }
 }

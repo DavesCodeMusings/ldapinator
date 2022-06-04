@@ -15,58 +15,72 @@
 </head>
 
 <body>
-  <h1>LDAPinator</h1>
+  <header>
+    <h1>LDAPinator <img style="float: right" onclick="alert('Login not implemented yet.')" alt="[menu]" src="icons/login.svg"></h1>
+  </header>
 
   <nav>
     <details>
       <summary onclick="showSubordinates(directoryStructure.baseDN, 'directory-tree'); showFields(directoryStructure.baseDN, 'organization')">
-        <img alt="[directory root]" src="icons/home.svg">Home
+        <img id="directory-root" alt="[directory root]" src="icons/home.svg">Home
       </summary>
       <p id="directory-tree"></p>
     </details>
   </nav>
 
   <main id="main">
-    <p>
-      <img id="details-icon" alt="[organization]" src="icons/site-map-outline.svg">
-    </p>
+    <form id="attributes">
+      <input style="grid-column: 1 / 8;" class="all" id="details-dn" type="text"
+        placeholder="uid=lipsum,dc=contoso,dc=com" readonly>
+      <img style="grid-column: 8 / 9; justify-self: end;" class="all" id="details-icon" src="icons/site-map-outline.svg">
 
-    <form>
-      <input id="details-dn"type="text" placeholder="dn" readonly>
-      <input id="details-uid" class="posixAccount" type="text" placeholder="user id" readonly>
-      <label class="posixAccount">User ID Number</label>
-      <input id="details-uidNumber" class="posixAccount" onchange="modifyAttribute('uidNumber')" type="text" placeholder="user id #" pattern="[0-9]{4,5}">
-      <label class="posixAccount posixGroup">Group ID Number</label>
-      <input id="details-gidNumber" class="posixAccount posixGroup" onchange="modifyAttribute('gidNumber')" type="text" placeholder="group id #" pattern="[0-9]{4,5}">
-      <label class="posixAccount">First Name</label>
-      <input id="details-givenName" class="posixAccount" onchange="modifyAttribute('givenName')" type="text" placeholder="first name" pattern="[A-Za-z]+">
-      <label class="posixAccount">Initials</label>
-      <input id="details-initials" class="posixAccount" onchange="modifyAttribute('initials')" type="text" placeholder="m.i." pattern="[A-Z.]+">
-      <label class="posixAccount">Last Name</label>
-      <input id="details-sn" class="posixAccount" onchange="modifyAttribute('sn')" type="text" placeholder="last name" pattern="[A-Za-z]+">
-      <label class="posixGroup">Description</label>
-      <input id="details-description" class="posixGroup" onchange="modifyAttribute('description')" type="text" placeholder="description">
-      <label class="posixAccount">Preferred Name</label>
-      <input id="details-displayName" class="posixAccount" onchange="modifyAttribute('displayName')" type="text" placeholder="display name">
-      <label class="posixAccount">email</label>
-      <input id="details-mail" class="posixAccount" onchange="modifyAttribute('mail')" type="email" placeholder="name@anubis.home">
-      <label class="posixAccount">Home Directory</label>
-      <input id="details-homeDirectory" class="posixAccount"onchange="modifyAttribute('homeDirectory')" type="text" placeholder="home directory" pattern="[a-z/]+">
-      <label class="posixGroup">Members</label>
-      <input id="details-memberUid" class="posixGroup" type="text" placeholder="uids of group members" pattern="[a-z, ]+">
-
-      <br>
-
-      <!-- Password dialog is hidden except for posixAccounts and then only revealed as a alide out by using the key icon -->
-      <input id="password" class="password-dialog" type="password" placeholder="password">
-      <input id="password-confirm" class="password-dialog" type="password" placeholder="confirm">
-      <a class="password-dialog" href="javascript:changePassword()"><img alt="[OK]" src="icons/check.svg"></a>
-      <a class="password-dialog" href="javascript:togglePasswordDialog('hide')"><img alt="[Cancel]" src="icons/close.svg"></a>
-      <a id="password-dialog-btn" class="posixAccount" href="javascript:togglePasswordDialog('show')" title="Change Password">
-        <img alt="[change password]" src="icons/key-variant.svg">
-      </a>
+      <label style="grid-column: 1 / 9;" class="posixAccount posixGroup" for="details-description">Description</label>
+      <input style="grid-column: 1 / 9;" class="posixAccount posixGroup" id="details-description"
+        onchange="modifyAttribute('description')" type="text" placeholder="DevOps Engineering">
+  
+      <label style="grid-column: 1 / 3;" class="posixAccount" for="details-uid">Login Name</label>
+      <input style="grid-column: 1 / 3;" class="posixAccount" id="details-uid" type="text" placeholder="lipsum" readonly>
+  
+      <label style="grid-column: 1 / 2;" class="posixAccount" for="details-uidNumber">User ID</label>
+      <input style="grid-column: 1 / 2;" class="posixAccount" id="details-uidNumber"
+        onchange="modifyAttribute('uidNumber')" type="text" placeholder="12345" pattern="[0-9]{4,5}">
+      <label style="grid-column: 1 / 2;" class="posixAccount posixGroup" for="details-gidNumber">Group ID</label>
+      <input style="grid-column: 1 / 2;" class="posixAccount posixGroup" id="details-gidNumber"
+        onchange="modifyAttribute('gidNumber')" type="text" placeholder="12345" pattern="[0-9]{4,5}">
+  
+      <label style="grid-column: 1 / 3;" class="posixAccount">First Name</label>
+      <label style="grid-column: 3 / 4;" class="posixAccount">Initials</label>
+      <label style="grid-column: 4 / 9;" class="posixAccount">Last Name</label>
+      <input style="grid-column: 1 / 3;" id="details-givenName" class="posixAccount"
+        onchange="modifyAttribute('givenName')" type="text" placeholder="Lorem" pattern="[A-Za-z]+">
+      <input style="grid-column: 3 / 4;" id="details-initials" class="posixAccount" onchange="modifyAttribute('initials')"
+        type="text" placeholder="P" pattern="[A-Z.]+">
+      <input style="grid-column: 4 / 9;" id="details-sn" class="posixAccount" onchange="modifyAttribute('sn')" type="text"
+        placeholder="Ipsum" pattern="[A-Za-z]+">
+      <label style="grid-column: 1 / 9" class="posixAccount" style="grid-column-start: 1; grid-column-end: 4;">Preferred
+        Name</label>
+      <input style="grid-column: 1 / 9" id="details-displayName" class="posixAccount" style="grid-column: 1 / 4;"
+        onchange="modifyAttribute('displayName')" type="text" placeholder="Lori Ipsum">
+  
+      <label style="grid-column: 1 / 9" class="posixAccount">email</label>
+      <input style="grid-column: 1 / 9" id="details-mail" class="posixAccount" onchange="modifyAttribute('mail')"
+        type="email" placeholder="lori.ipsum@contoso.com">
+      <label style="grid-column: 1 / 9" class="posixAccount">Home Directory</label>
+      <input style="grid-column: 1 / 9" id="details-homeDirectory" class="posixAccount"
+        onchange="modifyAttribute('homeDirectory')" type="text" placeholder="/home/lipsum" pattern="[a-z/]+">
+  
+      <label style="grid-column: 1 / 9" class="posixGroup">Member Login Names</label>
+      <input style="grid-column: 1 / 9" id="details-memberUid" class="posixGroup" type="text"
+        placeholder="lipsum, dsit, aconsectetur" pattern="[a-z, ]+">
+  
+      <label style="grid-column: 1 / 4" class="posixAccount">New Password</label>
+      <label style="grid-column: 4 / 7" class="posixAccount">Password Confirm</label>
+      <input style="grid-column: 1 / 4" class="posixAccount" id="password" type="password">
+      <input style="grid-column: 4 / 7" class="posixAccount" id="password-confirm" type="password">
+  
+      <img style="grid-column: 7 / 8; justify-self: end;" class="posixAccount" onclick="clearPasswordFields()" alt="[Cancel]" src="icons/close.svg">
+      <img style="grid-column: 8 / 9; justify-self: end;" class="posixAccount" onclick="changePassword()" alt="[OK]" src="icons/check.svg">
     </form>
-
   </main>
 </body>
 
