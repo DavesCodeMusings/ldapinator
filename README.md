@@ -83,6 +83,14 @@ The ldapinator is still in development. So far it can read your LDAP objects, bu
 Nothing's encrypted. If you're concerned, use Nginx as a reverse proxy to handle TLS connections.
 
 ## Continued Development
+Ldapinator is a work in progress. Currently, it has these features:
+
+* You can update attributes for users and change their passwords.
+* You can edit group descriptions and GIDs, but not membership.
+* You can configure TLS certificates for encrypted communications.
+* You can configure to prevent updates without authorization, but currently there is no login via the web.
+* You can use the REST API to do everything (and more) that you can do via the web page.
+
 It's going to be a while before I add a feature to add and remove users or groups. You'll have to use other tools for that. I am a lone developer, not an enterprise team. Refer to Highlander quote above.
 
 It's Express.js under the covers though, so it should be fairly accessible if you want to hack on it and add features.
