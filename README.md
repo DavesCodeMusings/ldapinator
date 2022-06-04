@@ -48,6 +48,18 @@ services:
 
 Now, do `docker-compose up -d` and point your web browser to http://your.host:3269
 
+## What does it look like?
+A monochrome color scheme in keeping with the minimalist approach of Ldapinator, featuring Material Design icons.
+
+![User Dialog](https://github.com/DavesCodeMusings/ldapinator/blob/main/docs/images/LDAPinator_User_Dialog.jpg)
+
+_Screenshot of the User Dialog_
+
+
+![Group Dialog](https://github.com/DavesCodeMusings/ldapinator/blob/main/docs/images/LDAPinator_Group_Dialog.jpg)
+
+_Screenshot of the Group Dialog_
+
 ## For the love of God, man... why???
 Just about any application that supports centralized user authentication can use LDAP for that purpose. For me, the list looks like this:
 * Dovecot
