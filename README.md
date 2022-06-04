@@ -10,19 +10,23 @@ The easiest way is using Docker Compose. But first, you need to create a config.
 ### config.ini
 ```
 [connect]
-host = ldap://192.168.0.100:389
+hostURL = ldap://192.168.0.100:389
+useTLS = no                    ; not implemented yet
 
 [bind]
-readOnlyDN = "uid=search,dc=example,dc=com"
+readOnlyDN = "cn=search,dc=home"
 readOnlyPassword = redacted
-readWriteDN = "cn=Manager,dc=example,dc=com"
+readWriteDN = "cn=Manager,dc=home"
 readWritePassword = redacted
 
 [structure]
-baseDN = "dc=example,dc=com"
+baseDN = "dc=home"
+groupDN = "ou=Groups,dc=home"
+userDN = "ou=People,dc=home"
 
 [api]
-;port = 3269  ; uncomment to override default
+;port = 3269
+;useTLS = no                   ; not implemented yet
 allowAnonymousRead = yes       ; yes or no
 allowAnonymousModify = yes     ; yes or no
 allowUserPasswordChange = yes  ; yes or no
@@ -36,17 +40,23 @@ Obviously, adjust config.ini to match your installation.
 ```
 services:
   ldapinator:
-    image: davescodemusings/ldapinator:latest
+    build: .
+    image: ldapinator
     container_name: ldapinator
     hostname: ldapinator
     restart: unless-stopped
     ports:
+      - "3268:3268"
       - "3269:3269"
     volumes:
-      - ./config.ini:/app/config.ini
+      - ./config:/app/config
 ```
 
-Now, do `docker-compose up -d` and point your web browser to http://your.host:3269
+### Certificates
+If you want encrypted communications, you'll need a server.cert and matching server.key in ./config
+
+### Starting it up
+Now, do `docker-compose up -d` and point your web browser to http://your.host:3268 for unencrypted or http://your.host:3269 for TLS encrypted.
 
 ## What does it look like?
 A monochrome color scheme in keeping with the minimalist approach of Ldapinator, featuring Material Design icons.
