@@ -87,11 +87,6 @@ As nifty as LDAP can be for the home network user, it's not easy to find tools t
 
 Ldapinator aims to fill the niche for the LDAP enamored home network admin. 
 
-## Caveats
-The ldapinator is still in development. So far it can read your LDAP objects, but not change them. Changes do work using back-end REST API calls, but there's no pretty web front-end for it yet. It's an Express.js app, so if you're handy with that sort of thing, I'm sure you can figure it out.
-
-Nothing's encrypted. If you're concerned, use Nginx as a reverse proxy to handle TLS connections.
-
 ## Continued Development
 Ldapinator is a work in progress. Currently, it has these features:
 
