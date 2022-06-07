@@ -53,7 +53,9 @@ services:
 ```
 
 ### Certificates
-If you want encrypted communications, you'll need a server.cert and matching server.key in ./config
+If you want encrypted communications, you'll need a server.cert and matching server.key in ./config (the same directory where you created config.ini
+
+If you don't have certificates, uncomment `useTLS = no` in the _api_ section of config.ini
 
 ### Starting it up
 Now, do `docker-compose up -d` and point your web browser to http://your.host:3268 for unencrypted or http://your.host:3269 for TLS encrypted.
