@@ -25,13 +25,13 @@ groupDN = "ou=Groups,dc=home"
 userDN = "ou=People,dc=home"
 
 [api]
-;port = 3269
-;useTLS = no                   ; not implemented yet
+;port = 3268
+;tlsPort = 3269
+;useTLS = no                   ; uncomment if you don't have TLS certificates
 allowAnonymousRead = yes       ; yes or no
 allowAnonymousModify = yes     ; yes or no
 allowUserPasswordChange = yes  ; yes or no
-authorizedUser = update
-authorizedPassword = redacted
+token = S0m3R4nd0mStr!ng
 ```
 
 Obviously, adjust config.ini to match your installation.
