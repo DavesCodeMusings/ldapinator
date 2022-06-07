@@ -9,79 +9,107 @@
   <script src='script.js'></script>
   <script>
     getDirectoryStructure(() => {
-      document.getElementById('details-dn').value = directoryStructure.baseDN;
+      document.getElementById('directory-root').innerHTML = shortName(directoryStructure.baseDN)
+      document.getElementById('details-shortName').value = shortName(directoryStructure.baseDN)
+      document.getElementById('details-dn').value = directoryStructure.baseDN
     })
   </script>
 </head>
 
 <body>
   <header>
-    <h1>LDAPinator <img style="float: right" onclick="alert('Login not implemented yet.')" alt="[menu]" src="icons/login.svg"></h1>
+    LDAPinator
+    <a href="javascript:document.getElementById('api-auth-dialog').showModal()" title="Log In">
+      <img style="float: right" id="api-login" alt="[login]" src="icons/login.svg">
+    </a>
+    <a href="javascript:clearApiToken()" title="Log Out">
+      <img style="float: right" id="api-logout" alt="[logout]" src="icons/logout.svg">
+    </a>
   </header>
 
   <nav>
     <details>
-      <summary onclick="showSubordinates(directoryStructure.baseDN, 'directory-tree'); showFields(directoryStructure.baseDN, 'organization')">
-        <img id="directory-root" alt="[directory root]" src="icons/home.svg">Home
+      <summary
+        onclick="showSubordinates(directoryStructure.baseDN, 'directory-tree'); showFields(directoryStructure.baseDN, 'organization')">
+        <img alt="[directory root]" src="icons/home.svg"> <span id="directory-root">Directory Root</span>
       </summary>
       <p id="directory-tree"></p>
     </details>
   </nav>
 
-  <main id="main">
+  <main>
     <form id="attributes">
-      <input style="grid-column: 1 / 8;" class="all" id="details-dn" type="text"
+      <input style="grid-column: 1 / 8;" class="all" id="details-shortName" type="text" placeholder="lipsum" readonly>
+      <img style="grid-column: 8 / 9; justify-self: end;" class="all" id="details-icon"
+        src="icons/site-map-outline.svg">
+      <input style="grid-column: 1 / 9;" class="all" id="details-dn" type="text"
         placeholder="uid=lipsum,dc=contoso,dc=com" readonly>
-      <img style="grid-column: 8 / 9; justify-self: end;" class="all" id="details-icon" src="icons/site-map-outline.svg">
 
-      <label style="grid-column: 1 / 9;" class="posixAccount posixGroup" for="details-description">Description</label>
-      <input style="grid-column: 1 / 9;" class="posixAccount posixGroup" id="details-description"
-        onchange="modifyAttribute('description')" type="text" placeholder="DevOps Engineering">
-  
+      <label style="grid-column: 1 / 9;" class="posixAccount posixGroup organizationalRole"
+        for="details-description">Description</label>
+      <input style="grid-column: 1 / 9;" class="posixAccount posixGroup organizationalRole" id="details-description"
+        onchange="modifyAttribute('description')" type="text">
+
       <label style="grid-column: 1 / 3;" class="posixAccount" for="details-uid">Login Name</label>
-      <input style="grid-column: 1 / 3;" class="posixAccount" id="details-uid" type="text" placeholder="lipsum" readonly>
-  
-      <label style="grid-column: 1 / 2;" class="posixAccount" for="details-uidNumber">User ID</label>
+      <input style="grid-column: 1 / 3;" class="posixAccount" id="details-uid" type="text" placeholder="lipsum"
+        readonly>
+
+      <label style="grid-column: 1 / 2;" class="posixAccount" for="details-uidNumber">User ID #</label>
       <input style="grid-column: 1 / 2;" class="posixAccount" id="details-uidNumber"
         onchange="modifyAttribute('uidNumber')" type="text" placeholder="12345" pattern="[0-9]{4,5}">
-      <label style="grid-column: 1 / 2;" class="posixAccount posixGroup" for="details-gidNumber">Group ID</label>
+      <label style="grid-column: 1 / 2;" class="posixAccount posixGroup" for="details-gidNumber">Group ID #</label>
       <input style="grid-column: 1 / 2;" class="posixAccount posixGroup" id="details-gidNumber"
         onchange="modifyAttribute('gidNumber')" type="text" placeholder="12345" pattern="[0-9]{4,5}">
-  
+
       <label style="grid-column: 1 / 3;" class="posixAccount">First Name</label>
       <label style="grid-column: 3 / 4;" class="posixAccount">Initials</label>
       <label style="grid-column: 4 / 9;" class="posixAccount">Last Name</label>
       <input style="grid-column: 1 / 3;" id="details-givenName" class="posixAccount"
         onchange="modifyAttribute('givenName')" type="text" placeholder="Lorem" pattern="[A-Za-z]+">
-      <input style="grid-column: 3 / 4;" id="details-initials" class="posixAccount" onchange="modifyAttribute('initials')"
-        type="text" placeholder="P" pattern="[A-Z.]+">
-      <input style="grid-column: 4 / 9;" id="details-sn" class="posixAccount" onchange="modifyAttribute('sn')" type="text"
-        placeholder="Ipsum" pattern="[A-Za-z]+">
+      <input style="grid-column: 3 / 4;" id="details-initials" class="posixAccount"
+        onchange="modifyAttribute('initials')" type="text" placeholder="P" pattern="[A-Z.]+">
+      <input style="grid-column: 4 / 9;" id="details-sn" class="posixAccount" onchange="modifyAttribute('sn')"
+        type="text" placeholder="Ipsum" pattern="[A-Za-z]+">
       <label style="grid-column: 1 / 9" class="posixAccount" style="grid-column-start: 1; grid-column-end: 4;">Preferred
         Name</label>
       <input style="grid-column: 1 / 9" id="details-displayName" class="posixAccount" style="grid-column: 1 / 4;"
         onchange="modifyAttribute('displayName')" type="text" placeholder="Lori Ipsum">
-  
+
       <label style="grid-column: 1 / 9" class="posixAccount">email</label>
       <input style="grid-column: 1 / 9" id="details-mail" class="posixAccount" onchange="modifyAttribute('mail')"
         type="email" placeholder="lori.ipsum@contoso.com">
       <label style="grid-column: 1 / 9" class="posixAccount">Home Directory</label>
       <input style="grid-column: 1 / 9" id="details-homeDirectory" class="posixAccount"
         onchange="modifyAttribute('homeDirectory')" type="text" placeholder="/home/lipsum" pattern="[a-z/]+">
-  
+
       <label style="grid-column: 1 / 9" class="posixGroup">Member Login Names</label>
       <input style="grid-column: 1 / 9" id="details-memberUid" class="posixGroup" type="text"
         placeholder="lipsum, dsit, aconsectetur" pattern="[a-z, ]+">
-  
-      <label style="grid-column: 1 / 4" class="posixAccount">New Password</label>
-      <label style="grid-column: 4 / 7" class="posixAccount">Password Confirm</label>
-      <input style="grid-column: 1 / 4" class="posixAccount" id="password" type="password">
-      <input style="grid-column: 4 / 7" class="posixAccount" id="password-confirm" type="password">
-  
-      <img style="grid-column: 7 / 8; justify-self: end;" class="posixAccount" onclick="clearPasswordFields()" alt="[Cancel]" src="icons/close.svg">
-      <img style="grid-column: 8 / 9; justify-self: end;" class="posixAccount" onclick="changePassword()" alt="[OK]" src="icons/check.svg">
+
+      <label style="grid-column: 1 / 4" class="passwordDialog">New Password</label>
+      <label style="grid-column: 4 / 7" class="passwordDialog">Confirm Password</label>
+      <input style="grid-column: 1 / 4" class="passwordDialog" id="password" type="password">
+      <input style="grid-column: 4 / 7" class="passwordDialog" id="password-confirm" type="password">
+      <img style="grid-column: 8 / 9; justify-self: end;" class="posixAccount" id="change-password-icon"
+        onclick="togglePasswordDialog('show')" alt="[Key]" src="icons/key-variant.svg">
+
+      <img style="grid-column: 7 / 8; justify-self: end;" class="passwordDialog" onclick="clearPasswordFields()"
+        alt="[Cancel]" src="icons/close.svg">
+      <img style="grid-column: 8 / 9; justify-self: end;" class="passwordDialog" onclick="changePassword()" alt="[OK]"
+        src="icons/check.svg">
     </form>
   </main>
+
+  <dialog id="api-auth-dialog">
+    <form id="api-auth-form">
+      <span style="grid-column: 1/2; font-family: sans-serif; font-size: 24px;">Authentication</span>
+      <img style="grid-column: 2/3; justify-self: end; width:24px; height:24px;" alt="x" src="icons/close.svg" onclick="document.getElementById('api-auth-dialog').close()">
+      <label style="grid-column: 1/3">API Token</label>
+      <input style="grid-column: 1/3" id="api-token" type="password">
+      <button style="grid-column: 1/3; margin-top: calc(9pt + 0.7em);" type="button" onclick="getApiToken(); document.getElementById('api-auth-dialog').close()">OK</button>
+    </form>
+  </dialog>
+
 </body>
 
 </html>

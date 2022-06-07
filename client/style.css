@@ -1,4 +1,6 @@
+/* Try to eliminate any differences across browsers */
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
@@ -20,6 +22,25 @@ body {
   width: 1024px;
 }
 
+header {
+  background-color: #00000033;
+  font-size: 24px;  /* Match font size to size of login.svg and logout.svg icons */
+  font-weight: bold;
+  padding: 0.2em;
+  margin-bottom: 1em;
+}
+
+#api-logout {
+  display: none;  /* Made visible by getApiToken() once credential is entered */
+}
+
+/*
+ * The following elements are for the LDAP directory tree view (left side of the screen)
+ */
+nav {
+  float: left;
+}
+
 details img {
   margin-right: 0.2em;
   vertical-align: bottom;
@@ -30,8 +51,23 @@ details > summary {
   list-style-type: none;
 }
 
+#details-shortName {
+  font-weight: bold;
+}
+
+#directory-root {
+  font-variant: small-caps;
+}
+
 details > p {
-  margin-left: 24px;  /* Width of prepended icons in navigation tree */
+  margin-left: 24px;  /* Same as width of prepended icons to make things line up */
+}
+
+/*
+ * The following elements are for the LDAP attributes view (right side of the screen)
+ */
+main {
+  float: right;
 }
 
 form {
@@ -41,18 +77,23 @@ form {
   width: 640px;
 }
 
+button {
+  padding: 0.2em;
+}
+
 input {
   border: 1px solid lightgray;
   font-size: 12pt;
-  height: 24px;  /* Matches default height of Material Design icons */
+  height: 24px;  /* Matches default height of SVG icons */
 }
 
-input[readonly] {
+input[readonly] {  /* Attributes like the distinguished name and uid cannot be changed */
   background-color: #00000000;
   border: none;
 }
 
 label {
+  color: dimgray;
   font-size: 9pt;
   font-variant: small-caps;
   margin-top: 0.5em;
@@ -63,25 +104,34 @@ label {
   font-style: italic;
 }
 
-form .posixGroup, form .posixAccount {
-  display: none;  /* Made visible by showFields() */
+#change-password-icon {
+  margin-top: calc(9pt + 0.2em);  /* font-size of label plus ann estimate of the label's padding */
 }
 
-header {
-  background-color: #00000033;
-  margin-bottom: 1em;
+.posixGroup, .posixAccount, .passwordDialog {
+  display: none;  /* Classes of attributes whose visibility is controlled by showFields() and/or togglePasswordDialog() */
 }
 
-h1 {
-  font-size: 16pt;
-  font-weight: bold;
-  padding: 0.2em;
+/*
+ * The following elements are for modal dialog boxes
+ */
+dialog {
+  background-color: silver;  /* Background styling same as body element */
+  background-image: linear-gradient(whitesmoke, silver);
+  border: 1px solid dimgray;
+  border-radius: 0.2em;
+  margin: auto;
+  padding: 1em;
 }
 
-main {
-  float: right;
+dialog::backdrop {
+  background-color: #0000007F;  /* A little more opaque than default */
+
 }
 
-nav {
-  float: left;
+#api-auth-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  row-gap: 0.2em;
+  width: 20em;
 }

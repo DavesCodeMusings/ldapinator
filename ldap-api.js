@@ -46,7 +46,7 @@ else {
   ldapServerURLs.push('ldap://127.0.0.1:389')
 }
 
-apiAuthorization = 'Basic ' + Buffer.from(`${config.api.authorizedUser}:${config.api.authorizedPassword}`).toString('base64')  
+apiAuthorization = 'Bearer ' + config.api.token
 
 
 /* List of attributes that can be queried and updated via the API */
@@ -91,8 +91,8 @@ function authCheck(req, res, next) {
 
   if (requireAuthorization && req.headers.authorization !== apiAuthorization) {
     res.status(401)
-    res.send('Credentials must be provided with this request')
-    console.error('Missing or incorrect API credentials')
+    res.send('An authentication token must be provided with this request')
+    console.error('Missing or incorrect API token')
     console.debug('Expected', apiAuthorization)
     console.debug('Got:', req.headers.authorization)
   }
@@ -139,7 +139,7 @@ function connect(url, dn, password) {
  * @baseDN {string}  Where to search, like 'ou=People,dc=example,dc=com'
  * @returns {promise}  Resolves to array of distinguished names and object classes.
  */
-async function getObjects(baseDN) {
+async function getSubordinateObjects(baseDN) {
   let connection = await connect(ldapServerURLs, config.bind.readOnlyDN, config.bind.readOnlyPassword).catch((err) => {
     console.error('LDAP server error:', err)
     reject(err)
@@ -149,26 +149,32 @@ async function getObjects(baseDN) {
     scope: 'one'
   }
 
-  // Only two attributes are of interest: dn (distinguished name) and objectClass.
-  // objectClass is used to determine the node type (container or leaf.)
+  // Only three attributes are of interest: dn (distinguished name), description, and any objectClasses.
+  // objectClasses are used to determine if the node is a container or a leaf.
   let results = []
   return new Promise((resolve, reject) => {
     connection.search(baseDN, opts, (err, res) => {
       res.on('searchEntry', (entry) => {
         console.debug('dn:', entry.objectName)
+        let descriptionAttributes = entry.attributes.filter(attribute => attribute.type == 'description')
+        let description = ''  // description is single-valued, there should be one at most.
+        if (descriptionAttributes.length !== 0) {
+          console.debug('  attribute type:', descriptionAttributes[0].type)
+          description = descriptionAttributes[0]._vals[0].toString();
+          console.debug('    value:', description)
+        }
         let classAttributes = entry.attributes.filter(attribute => attribute.type == 'objectClass')
-        let objectClasses = []
+        let objectClasses = []  // objectClass is multi-valued, there can be one or more.
         classAttributes.forEach(attribute => {
           console.debug('  attribute type:', attribute.type)
-          if (attribute.type == 'objectClass') {
-            attribute._vals.forEach(value => {
-              console.debug('    value:', value.toString())
-              objectClasses.push(value.toString())
-            })
-          }
+          attribute._vals.forEach(value => {
+            console.debug('    value:', value.toString())
+            objectClasses.push(value.toString())
+          })
         })
         let collectedAttributes = {
           "dn": entry.objectName,
+          "description": description,
           "classes": objectClasses
         }
         results.push(collectedAttributes)
@@ -348,16 +354,35 @@ app.use(express.json())
 app.use(authCheck)
 app.use('/', express.static(__dirname + '/client'))
 
+
+/*
+ * @oas [get] /config/structure
+ * description: "Return hints about how the LDAP directory is laid out"
+ * responses:
+ *   "200":
+ *     description: "DNs to help the web client understand the directory layout"
+ */
 app.get('/config/structure', function (req, res) {
   res.send(config.structure)
 })
 
+
+/*
+ * @oas [get] /{dn}
+ * description: "Return attributes of an LDAP distinguished name"
+ * parameters:
+ *   - (path) dn {String} The LDAP distinguished name
+ *   - (query) view {string} If subordinate, treat dn as a container and return its subordinate objects
+ * responses:
+ *   "200":
+ *     description: "Attributes of the requested DN"
+ */
 app.get('/:dn', async function (req, res) {
   let results = ''
 
   console.debug(req.query);
   if (req.query.view == 'subordinate') {
-    results = await getObjects(req.params.dn)
+    results = await getSubordinateObjects(req.params.dn)
   }
   else {
     results = await getObjectDetail(req.params.dn)
@@ -366,6 +391,20 @@ app.get('/:dn', async function (req, res) {
   res.send(results)
 })
 
+
+/*
+ * @oas [put] /{dn}
+ * description: "Set attributes of the LDAP distinguished name"
+ * parameters:
+ *   - (path) dn {String} The LDAP distinguished name
+ * responses:
+ *   "200":
+ *     description: "Replies with the DN in the body."
+ *   "403":
+ *     description: "Changing the attribute is not allowed by configuration"
+ *   "500":
+ *     description: "Password change failed for reason stated in response body"
+ */
 app.put('/:dn', async function (req, res) {
   let requestedAttribute = Object.keys(req.body)[0]
   console.debug('attribute:', Object.keys(req.body))
@@ -373,7 +412,7 @@ app.put('/:dn', async function (req, res) {
   if (requestedAttribute == 'userPassword') {
     if (config.api.allowUserPasswordChange == 'yes') {
       let result = await modifyPassword(req.params.dn, req.body.userPassword).catch((err) => {
-        res.status(400)
+        res.status(500)
         res.send(err)
       })
       res.send(result)
@@ -387,7 +426,7 @@ app.put('/:dn', async function (req, res) {
   else {
     console.debug('Checking access for:', requestedAttribute)
     if (!allowedAttributes.includes(requestedAttribute)) {
-      res.status(400)
+      res.status(403)
       res.send('attribute not allowed')
     }
     else {
@@ -399,13 +438,20 @@ app.put('/:dn', async function (req, res) {
 })
 
 
+/*
+ * Listen on port 3268 and TLS port 3269, unless configured otherwise in config.ini
+ */
+console.log('Starting API')
+
 createServer(app).listen(config.api.port || 3268)
 
-try {
-  let tlsCert = readFileSync(join(__dirname, 'config', 'server.crt'))
-  let tlsKey = readFileSync(join(__dirname + 'config', 'server.key'))
-  createServerTLS({ cert: tlsCert, key: tlsKey }, app).listen(config.api.tlsPort || 3269)
-}
-catch (ex) {
-  console.warn('TLS disabled.', ex)
+if (config.api.useTLS !== 'no') {
+  try {
+    let tlsCert = readFileSync(join(__dirname, 'config', 'server.crt'))
+    let tlsKey = readFileSync(join(__dirname + 'config', 'server.key'))
+    createServerTLS({ cert: tlsCert, key: tlsKey }, app).listen(config.api.tlsPort || 3269)
+  }
+  catch (ex) {
+    console.warn('TLS certificate error.', ex)
+  }
 }

@@ -1,10 +1,7 @@
 const api = `${window.location.protocol}//${window.location.host}`
-
-/*
- * baseDN, groupDN, userDN
- * Filled by getDirectoryStructure() function below.
- */
+var apiToken = ''
 var directoryStructure
+
 
 /**
  * API call to get hints about the LDAP directory layout from config.ini [structure] section.
@@ -21,19 +18,24 @@ async function getDirectoryStructure(callback) {
   }
 }
 
+
 /**
  * Create a shortened version of a distinguished name using the top-most component.
- * E.g. "ou=People,dc=example,dc=com" becomes just "People"
+ * E.g. "dc=example,dc=com" becomes "example.com" and "ou=People,dc=example,dc=com"
+ * becomes just "People"
  * @param {string} dn 
  * @returns {string}
  */
 function shortName(dn) {
-    return dn.substring(dn.indexOf('=') + 1, dn.indexOf(','))
+    if (dn.startsWith('dc=')) {
+        // for domains, replace dc= or ,dc= with . and then remove the first dot (.)
+        return dn.replace(/,?dc=/, '.').substring(1)
+    }
+    else {
+        return dn.substring(dn.indexOf('=') + 1, dn.indexOf(','))
+    }
 }
 
-function showDN(dn) {
-    document.getElementById('details-dn').value = dn
-}
 
 /**
  * Show the LDAP directory objects in tree format.
@@ -41,55 +43,56 @@ function showDN(dn) {
  * @param {string} element Parent element for the dynamically generated HTML 
  */
 async function showSubordinates(dn, element) {
+    document.getElementById('details-shortName').value = shortName(dn)
     document.getElementById('details-dn').value = dn
     console.debug(`Contacting LDAP API ${api}/${dn}`)
     let response = await fetch(`${api}/${dn}?view=subordinate`)
     if (response.status != 200) {
         console.error(response)
+        alert('API call failed.')
     }
     else {
         let text = await response.text()
         let jsonObject = JSON.parse(text)
-        console.debug(jsonObject)
+        console.debug('API reply:', jsonObject)
         let target = document.getElementById(element)
         target.innerHTML = ''
         jsonObject.forEach(ldapObject => {
             let htmlFragment = ''
             console.debug(ldapObject.classes)
             if (ldapObject.classes.includes('organizationalUnit')) {
-                htmlFragment += '<details>'
-                htmlFragment += `<summary onclick="showSubordinates('${ldapObject.dn}', '${ldapObject.dn}'); showFields('${ldapObject.dn}', 'organizationalUnit')">`
-                htmlFragment += '<img alt="[folder]" src="icons/folder.svg">'
-                htmlFragment += `${shortName(ldapObject.dn)}</summary>`
-                htmlFragment += `</summary>`
-                htmlFragment += `<p id="${ldapObject.dn}"></p>`
-                htmlFragment += `</details>`
+                htmlFragment += `
+                  <details>
+                    <summary onclick="showSubordinates('${ldapObject.dn}', '${ldapObject.dn}'); showFields('${ldapObject.dn}', 'organizationalUnit')">
+                      <img alt="[folder]" src="icons/folder.svg"> ${shortName(ldapObject.dn)}
+                    </summary>
+                    <p id="${ldapObject.dn}"></p>
+                  </details>`
             }
             else if (ldapObject.classes.includes('posixAccount')) {
-                htmlFragment += `<p  id="${ldapObject.dn}" onclick="showAttributes('${ldapObject.dn}'); showFields('${ldapObject.dn}', 'posixAccount')">`
-                htmlFragment += '<img alt="[posix-account]" src="icons/account.svg">'
-                htmlFragment += `${shortName(ldapObject.dn)}</p>`
-                htmlFragment += '</p>'
+                htmlFragment += `
+                  <p  id="${ldapObject.dn}" onclick="showAttributes('${ldapObject.dn}'); showFields('${ldapObject.dn}', 'posixAccount')">
+                    <img alt="[posix-account]" src="icons/account.svg"> ${shortName(ldapObject.dn)}
+                  </p>`
             }
             else if (ldapObject.classes.includes('posixGroup')) {
-                htmlFragment += `<p id="${ldapObject.dn}" onclick="showAttributes('${ldapObject.dn}'); showFields('${ldapObject.dn}', 'posixGroup')">`
-                htmlFragment += '<img alt="[posix-group]" src="icons/account-multiple.svg">'
-                htmlFragment += `${shortName(ldapObject.dn)}</p>`
-                htmlFragment += '</p>'
+                htmlFragment += `
+                  <p id="${ldapObject.dn}" onclick="showAttributes('${ldapObject.dn}'); showFields('${ldapObject.dn}', 'posixGroup')">
+                    <img alt="[posix-group]" src="icons/account-multiple.svg"> ${shortName(ldapObject.dn)}
+                  </p>`
             }
             else if (ldapObject.classes.includes('organizationalRole') || ldapObject.classes.includes('inetOrgPerson')) {
-                htmlFragment += `<p id="${ldapObject.dn}" onclick="showDN('${ldapObject.dn}'); showFields('${ldapObject.dn}', 'organizationalRole');">`
-                htmlFragment += '<img alt="[organizational-role]" src="icons/account-outline.svg">'
-                htmlFragment += `${shortName(ldapObject.dn)}</p>`
-                htmlFragment += '</p>'
+                htmlFragment += `
+                  <p id="${ldapObject.dn}" onclick="showAttributes('${ldapObject.dn}'); showFields('${ldapObject.dn}', 'organizationalRole');">
+                    <img alt="[organizational-role]" src="icons/account-outline.svg"> ${shortName(ldapObject.dn)}
+                  </p>`
             }
             else {
                 console.debug('dn:', ldapObject.dn)
-                let icon = 'food-drumstick.svg'
-                htmlFragment += `<p id="${ldapObject.dn}">`
-                htmlFragment += `<img alt="[unknown]" src="icons/${icon}">`
-                htmlFragment += `${shortName(ldapObject.dn)}</p>`
-                htmlFragment += '</p>'
+                htmlFragment += `
+                  <p id="${ldapObject.dn}">
+                    <img alt="[unknown]" src="icons/${icon}"> ${shortName(ldapObject.dn)}
+                  </p>`
             }
 
             target.innerHTML += `${htmlFragment}\n`
@@ -108,10 +111,12 @@ async function showAttributes(dn) {
     let response = await fetch(`${api}/${dn}`)
     if (response.status != 200) {
         console.error(response)
+        alert('API call failed.')
     }
     else {
         let text = await response.text()
         let jsonObject = JSON.parse(text)
+        document.getElementById('details-shortName').value = shortName(jsonObject[0].dn)
         document.getElementById('details-dn').value = jsonObject[0].dn
         document.getElementById('details-description').value = jsonObject[0].description
         document.getElementById('details-displayName').value = jsonObject[0].displayName
@@ -126,6 +131,7 @@ async function showAttributes(dn) {
         document.getElementById('details-memberUid').value = jsonObject[0].memberUid.toString()
     }
 }
+
 
 function showFields(dn, className) {
     console.debug('showFields(%s, %s)', dn, className)
@@ -168,6 +174,7 @@ function showFields(dn, className) {
     }
 }
 
+
 async function modifyAttribute(attribute) {
     let dn = document.getElementById('details-dn').value
     let value = document.getElementById('details-' + attribute).value
@@ -175,7 +182,7 @@ async function modifyAttribute(attribute) {
     console.debug(`Modifying ${attribute} to "${value}" for ${dn}`)
     headers = new Headers()
     headers.append('Content-Type', 'application/json')
-    // headers.append('Authorization', 'Basic ' + btoa('update:redacted'))
+    headers.append('Authorization', 'Bearer ' + apiToken)
     const options = {
         method: 'PUT',
         headers: headers,
@@ -185,6 +192,7 @@ async function modifyAttribute(attribute) {
     let response = await fetch(`${api}/${dn}`, options)
     if (response.status != 200) {
         console.error('Modify failed')
+        alert('API call failed.\nData shown on screen is no longer consistent with database!')
     }
     else {
         console.debug('Modify complete')
@@ -196,10 +204,24 @@ async function modifyAttribute(attribute) {
     console.debug('request body:', body)
 }
 
+
+function togglePasswordDialog(state) {
+    document.getElementById('change-password-icon').style.display = (state == 'show' ? 'none' : 'inline') 
+    formElements = document.getElementById('attributes').children
+    for (let i = 0; i < formElements.length; i++) {
+      if (formElements[i].classList.contains('passwordDialog')) {
+        formElements[i].style.display = (state == 'show' ? 'inline' : 'none')
+      }
+    }
+}
+
+
 function clearPasswordFields() {
     document.getElementById('password').value = ''
     document.getElementById('password-confirm').value = ''
+    togglePasswordDialog('hide')
 }
+
 
 async function changePassword() {
     let userDN = document.getElementById('details-dn').value
@@ -217,7 +239,7 @@ async function changePassword() {
     else {
         headers = new Headers()
         headers.append('Content-Type', 'application/json')
-        // headers.append('Authorization', 'Basic ' + btoa('update:redacted'))
+        headers.append('Authorization', 'Bearer ' + apiToken)
         const options = {
             method: 'PUT',
             headers: headers,
@@ -226,10 +248,28 @@ async function changePassword() {
 
         let response = await fetch(`${api}/${userDN}`, options)
         if (response.status != 200) {
-            alert('Unable to change password.')
+            console.debug('Unable to change password.')
+            alert('API call failed.\nPassword was not updated.')
         }
         else {
             alert('Password changed.')
         }
     }
+}
+
+
+function getApiToken() {
+    apiToken = document.getElementById('api-token').value
+    document.getElementById('api-token').value = ''
+    document.getElementById('api-login').style.display = 'none'
+    document.getElementById('api-logout').style.display = 'inline'
+    document.getElementById('api-auth-dialog').close()
+}
+
+
+function clearApiToken() {
+    apiToken = ''
+    document.getElementById('api-token').value = ''
+    document.getElementById('api-logout').style.display = 'none'
+    document.getElementById('api-login').style.display = 'inline'
 }
