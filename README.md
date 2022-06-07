@@ -95,7 +95,7 @@ Ldapinator is a work in progress. Currently, it has these features:
 * You can update attributes for users and change their passwords.
 * You can edit group descriptions and GIDs, but not membership.
 * You can configure TLS certificates for encrypted communications.
-* You can configure to prevent updates without authorization, but currently there is no login via the web.
+* You can allow updates only when an authorization token is entered.
 * You can use the REST API to do everything (and more) that you can do via the web page.
 
 It's going to be a while before I add a feature to add and remove users or groups. You'll have to use other tools for that. I am a lone developer, not an enterprise team. Refer to Highlander quote above.
