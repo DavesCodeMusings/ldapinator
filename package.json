@@ -2,6 +2,7 @@
   "name": "LDAPinator",
   "type": "module",
   "dependencies": {
+    "ini": "^3.0.0",
     "ldapjs": "^2.3.2",
     "express": "^4.18.1"
   }
